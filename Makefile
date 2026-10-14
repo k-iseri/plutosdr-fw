@@ -28,6 +28,12 @@ $(error "      3] export VIVADO_VERSION=v20xx.x")
 endif
 
 TARGET ?= pluto
+
+# pluto-fw-isdbt: 追加の post-build スクリプト（絶対パス。rootfs に overlay を重ねる等）。
+# buildroot 本体を改変せず、board/$(TARGET)/post-build.sh の後ろに連結して渡す
+ifneq ($(PLUTO_EXTRA_POST_BUILD),)
+BR_POST_BUILD = BR2_ROOTFS_POST_BUILD_SCRIPT="board/$(TARGET)/post-build.sh $(PLUTO_EXTRA_POST_BUILD)"
+endif
 SUPPORTED_TARGETS:=pluto sidekiqz2
 
 # Include target specific constants
@@ -120,7 +126,7 @@ ifneq (1, ${SKIP_LEGAL})
 	cp build/LICENSE.html buildroot/board/$(TARGET)/msd/LICENSE.html
 endif
 
-	make -C buildroot BUSYBOX_CONFIG_FILE=$(CURDIR)/buildroot/board/$(TARGET)/busybox-1.25.0.config all
+	make -C buildroot BUSYBOX_CONFIG_FILE=$(CURDIR)/buildroot/board/$(TARGET)/busybox-1.25.0.config $(BR_POST_BUILD) all
 
 .PHONY: buildroot/output/images/rootfs.cpio.gz
 
